@@ -23,7 +23,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home:  gifs(),
+      home: localStorage.username!=""?HomePage(): LoginPage(),
     );
   }
 }
