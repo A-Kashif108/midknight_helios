@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:midknight_helios/models/khat_model.dart';
 import 'package:path/path.dart';
 import '../models/user_model.dart';
 
@@ -36,10 +37,19 @@ class DBService {
         id: _auth.currentUser!.uid,
         url: user.url,
         email: user.email);
-    await _db
-        .collection('Users')
-        .doc(_auth.currentUser!.uid)
-        .set(u.toJson());
+    await _db.collection('Users').doc(_auth.currentUser!.uid).set(u.toJson());
+    await _db.collection('Users').doc(_auth.currentUser!.uid).set({
+      'sent_khats': [],
+      'received_khats': [],
+    });
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> getKhats()  {
+    return _db
+        .collection('Khats')
+        .where('receiverId', isEqualTo: _auth.currentUser!.uid)
+        .snapshots();
+
   }
 
   Future<MyUser> getUser() async {

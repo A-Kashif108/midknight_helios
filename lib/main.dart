@@ -24,8 +24,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: localStorage.username!=""?HomePage(): LoginPage(),
+      home: localStorage.username != "" ? HomePage() : LoginPage(),
     );
   }
 }
-

@@ -520,6 +520,9 @@ class _SignUpPageState extends State<SignUpPage> {
                       color: const Color.fromARGB(255, 66, 14, 179),
                       onPressed: () async {
                         if (_formKey3.currentState!.validate()) {
+                          setState(() {
+                            isLoading = true;
+                          });
                           if (_imageFile == null) {
                             ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
@@ -545,12 +548,16 @@ class _SignUpPageState extends State<SignUpPage> {
                           await AuthService().createUserWithEmailAndPassword(
                               _emailController.text, _passwordController.text);
                           localStorage.username = _emailController.text;
-                          await DBService().createUser(user).then((value) =>
-                              Navigator.of(context).pushAndRemoveUntil(
-                                MaterialPageRoute(
-                                    builder: (context) => const HomePage()),
-                                (r) => false,
-                              ));
+                          await DBService().createUser(user).then((value) {
+                            setState(() {
+                              isLoading = true;
+                            });
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                  builder: (context) => const HomePage()),
+                              (r) => false,
+                            );
+                          });
                         }
                       },
                       shape: RoundedRectangleBorder(

@@ -24,12 +24,12 @@ class ChatMessages {
    };
  }
 
- factory ChatMessages.fromDocument(DocumentSnapshot documentSnapshot) {
-   String idFrom = documentSnapshot.get('idFrom');
-   String idTo = documentSnapshot.get('idTo');
-   String timestamp = documentSnapshot.get('timestamp');
-   String content = documentSnapshot.get('content');
-   int type = documentSnapshot.get('type');
+ factory ChatMessages.fromDocument(Map<String, dynamic> map) {
+   String idFrom = map['idFrom'];
+   String idTo = map['idTo'];
+   String timestamp = map['timestamp'];
+   String content = map['content'];
+   int type = map['type'];
 
    return ChatMessages(
        idFrom: idFrom,

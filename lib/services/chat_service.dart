@@ -4,13 +4,12 @@ import '../models/chat_model.dart';
 
 class ChatService{
   FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
-  Stream<QuerySnapshot> getChatMessage(String groupChatId, int limit) {
+  Stream<QuerySnapshot<Map<String, dynamic>>> getChatMessage(String groupChatId) {
  return firebaseFirestore
      .collection('Messages')
      .doc(groupChatId)
      .collection(groupChatId)
      .orderBy('timestamp', descending: true)
-     .limit(limit)
      .snapshots();
 }
 void sendChatMessage(String content, int type, String groupChatId,

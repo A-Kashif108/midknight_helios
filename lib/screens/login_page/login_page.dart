@@ -4,6 +4,7 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:midknight_helios/screens/signup_page/signup_page.dart';
 import 'package:midknight_helios/services/auth_service.dart';
 import 'package:midknight_helios/services/db_service.dart';
+import 'package:midknight_helios/services/local_storage.dart';
 
 import '../home_page/home_page.dart';
 
@@ -200,6 +201,7 @@ class _LoginPageState extends State<LoginPage> {
                           _emailController.text,
                           _passwordController.text,
                         );
+                        localStorage.username = _emailController.text;
                         if (s != null) {
                           ScaffoldMessenger.of(context)
                               .showSnackBar(SnackBar(content: Text(s)));
