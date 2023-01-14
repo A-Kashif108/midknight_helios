@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:midknight_helios/screens/signup_page/signup_page.dart';
+import 'package:midknight_helios/services/auth_service.dart';
+import 'package:midknight_helios/services/db_service.dart';
 
+import '../home_page/home_page.dart';
 
 class LoginPage extends StatefulWidget {
-    const LoginPage({super.key});
+  const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -13,14 +17,14 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   // final _formKey2 = GlobalKey<FormState>();
   final _formKey = GlobalKey<FormState>();
-
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     double h = MediaQuery.of(context).size.height;
     double w = MediaQuery.of(context).size.width;
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      // child:SingleChildScrollView(
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(32.0),
@@ -64,7 +68,10 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     MaterialButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.of(context).push(MaterialPageRoute(
+                            builder: (context) => const SignUpPage()));
+                      },
                       //  color: Color.fromARGB(255, 14, 179, 80),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -93,15 +100,18 @@ class _LoginPageState extends State<LoginPage> {
                   children: [
                     TextFormField(
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'This field cannot be empty';
+                        final emailValid = RegExp(
+                            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+                        if (value!.isEmpty) {
+                          return "Email is required";
+                        } else if (!emailValid.hasMatch(value)) {
+                          return "Enter valid email";
                         }
-                        return null;
                       },
                       style: const TextStyle(
                           fontSize: 20, fontWeight: FontWeight.w500),
                       decoration: InputDecoration(
-                        hintText: 'Username',
+                        hintText: 'Email',
                         hintStyle: const TextStyle(
                           fontSize: 16,
                         ),
@@ -163,7 +173,7 @@ class _LoginPageState extends State<LoginPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
+                      child: const Text(
                         'Reset', //link to sign in screen
                         style: TextStyle(
                           color: Colors.black,
@@ -183,16 +193,23 @@ class _LoginPageState extends State<LoginPage> {
                   width: w * 0.9,
                   child: MaterialButton(
                     color: const Color.fromARGB(255, 66, 14, 179),
-                    onPressed: () {
-                      // setState(() {
-                      //   // progress++;
-                      // });
+                    onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        // If the form is valid, display a snackbar. In the real world,
-                        // you'd often call a server or save the information in a database.
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Processing Data')),
+                        String? s =
+                            await AuthService().createUserWithEmailAndPassword(
+                          _emailController.text,
+                          _passwordController.text,
                         );
+                        if (s != null) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text(s)));
+                        }else{
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(builder: (context) => const HomePage()),
+                            (r) => false,
+                            );
+                            
+                        }
                       }
                     },
                     shape: RoundedRectangleBorder(
