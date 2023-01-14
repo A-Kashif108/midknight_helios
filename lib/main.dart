@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:midknight_helios/screens/home_page/home_page.dart';
 import 'package:midknight_helios/screens/signup_page/signup_page.dart';
 
 import 'screens/landing_page/landing_page.dart';
@@ -18,7 +19,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const SignUpPage(),
+      home: const HomePage(),
     );
   }
 }
