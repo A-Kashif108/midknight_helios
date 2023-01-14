@@ -1,11 +1,13 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:midknight_helios/models/user_model.dart';
+import 'package:midknight_helios/screens/home_page/home_page.dart';
+import 'package:midknight_helios/services/auth_service.dart';
+import 'package:midknight_helios/services/db_service.dart';
+import 'package:midknight_helios/services/local_storage.dart';
 import 'package:midknight_helios/services/location_service.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -18,7 +20,8 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   XFile? _imageFile;
   final ImagePicker _picker = ImagePicker();
-  int progress = 2;
+  int progress = 0;
+  bool isLoading = false;
   String? gender;
   String? interested;
   bool locationLoading = false;
@@ -27,8 +30,10 @@ class _SignUpPageState extends State<SignUpPage> {
   final _formKey2 = GlobalKey<FormState>();
   final _formKey3 = GlobalKey<FormState>();
   final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _firstController = TextEditingController();
+  final TextEditingController _lastController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   @override
@@ -36,181 +41,191 @@ class _SignUpPageState extends State<SignUpPage> {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(25.0),
-          child: progress > 2
-              ? profilePage()
-              : progress == 2
-                  ? genderPage()
-                  : progress == 1
-                      ? namePage()
-                      : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(
-                              height: 100,
-                            ),
-                            Container(
-                              padding: const EdgeInsets.only(bottom: 25),
-                              child: const Text(
-                                'Create Profile',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 25,
-                                ),
-                              ),
-                            ),
-                            Form(
-                              key: _formKey,
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                              child: Padding(
-                                padding: const EdgeInsets.all(15.0),
-                                child: Column(
-                                  children: [
-                                    TextFormField(
-                                      controller: _usernameController,
-                                      style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w500),
-                                      decoration: InputDecoration(
-                                        hintText: 'Username',
-                                        hintStyle: const TextStyle(
-                                          fontSize: 16,
-                                        ),
-                                        contentPadding:
-                                            const EdgeInsets.all(18),
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          borderSide: BorderSide.none,
-                                        ),
-                                        filled: true,
-                                        fillColor: const Color.fromARGB(
-                                                255, 69, 194, 73)
-                                            .withOpacity(0.7),
-                                      ),
-                                      validator: (value) {
-                                        if (value!.isEmpty) {
-                                          return "Username is required";
-                                        } else if (value.length < 5) {
-                                          return "Username should be at least 5 characters";
-                                        }
-                                      },
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 10),
-                                      child: TextFormField(
-                                        controller: _passwordController,
-                                        validator: (value) {
-                                          String pattern =
-                                              r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$';
-                                          RegExp regExp = RegExp(pattern);
-                                          if (value!.isEmpty) {
-                                            return "Please enter password";
-                                          } else if (!regExp.hasMatch(value)) {
-                                            return " At least 1 Uppercase letter and 1 Symbol required ";
-                                          }
-                                        },
-                                        obscureText: true,
-                                        style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w500),
-                                        decoration: InputDecoration(
-                                          hintText: 'Password',
-                                          hintStyle: const TextStyle(
-                                            fontSize: 16,
-                                          ),
-                                          contentPadding:
-                                              const EdgeInsets.all(18),
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            borderSide: BorderSide.none,
-                                          ),
-                                          filled: true,
-                                          fillColor:
-                                              Colors.grey.withOpacity(0.2),
-                                        ),
+        child: isLoading
+            ? const Center(
+                child: CircularProgressIndicator(),
+              )
+            : Padding(
+                padding: const EdgeInsets.all(25.0),
+                child: progress > 2
+                    ? profilePage()
+                    : progress == 2
+                        ? genderPage()
+                        : progress == 1
+                            ? namePage()
+                            : Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(
+                                    height: 100,
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.only(bottom: 25),
+                                    child: const Text(
+                                      'Create Profile',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 25,
                                       ),
                                     ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 10),
-                                      child: TextFormField(
-                                        controller: _confirmPasswordController,
-                                        validator: (value) {
-                                          if (value!.isEmpty) {
-                                            return "Enter Confirm Password";
-                                          } else if (value !=
-                                              _passwordController.text) {
-                                            return "Password doesn't match";
-                                          }
-                                        },
-                                        style: const TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w500),
-                                        decoration: InputDecoration(
-                                          hintText: 'Confirm Password',
-                                          hintStyle: const TextStyle(
-                                            fontSize: 16,
+                                  ),
+                                  Form(
+                                    key: _formKey,
+                                    autovalidateMode:
+                                        AutovalidateMode.onUserInteraction,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(15.0),
+                                      child: Column(
+                                        children: [
+                                          TextFormField(
+                                            controller: _emailController,
+                                            style: const TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w500),
+                                            decoration: InputDecoration(
+                                              hintText: 'Email',
+                                              hintStyle: const TextStyle(
+                                                fontSize: 16,
+                                              ),
+                                              contentPadding:
+                                                  const EdgeInsets.all(18),
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                borderSide: BorderSide.none,
+                                              ),
+                                              filled: true,
+                                              fillColor: const Color.fromARGB(
+                                                      255, 69, 194, 73)
+                                                  .withOpacity(0.7),
+                                            ),
+                                            validator: (value) {
+                                              final emailValid = RegExp(
+                                                  r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+                                              if (value!.isEmpty) {
+                                                return "Email is required";
+                                              } else if (!emailValid
+                                                  .hasMatch(value)) {
+                                                return "Enter valid email";
+                                              }
+                                            },
                                           ),
-                                          contentPadding:
-                                              const EdgeInsets.all(18),
-                                          border: OutlineInputBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            borderSide: BorderSide.none,
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 10),
+                                            child: TextFormField(
+                                              controller: _passwordController,
+                                              validator: (value) {
+                                                String pattern =
+                                                    r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$';
+                                                RegExp regExp = RegExp(pattern);
+                                                if (value!.isEmpty) {
+                                                  return "Please enter password";
+                                                } else if (!regExp
+                                                    .hasMatch(value)) {
+                                                  return " At least 1 Uppercase letter and 1 Symbol required ";
+                                                }
+                                              },
+                                              obscureText: true,
+                                              style: const TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.w500),
+                                              decoration: InputDecoration(
+                                                hintText: 'Password',
+                                                hintStyle: const TextStyle(
+                                                  fontSize: 16,
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.all(18),
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                  borderSide: BorderSide.none,
+                                                ),
+                                                filled: true,
+                                                fillColor: Colors.grey
+                                                    .withOpacity(0.2),
+                                              ),
+                                            ),
                                           ),
-                                          filled: true,
-                                          fillColor:
-                                              Colors.grey.withOpacity(0.2),
-                                        ),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(12.0),
-                                      child: SizedBox(
-                                        height: 40,
-                                        width: 68,
-                                        child: MaterialButton(
-                                          color: const Color.fromARGB(
-                                              255, 66, 14, 179),
-                                          onPressed: () {
-                                            if (_formKey.currentState!
-                                                .validate()) {
-                                              setState(() {
-                                                progress++;
-                                              });
-                                            }
-                                          },
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8)),
-                                          child: const Text(
-                                            '>>>',
-                                            style: TextStyle(
-                                                color: Colors.white,
-                                                fontSize: 20),
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 10),
+                                            child: TextFormField(
+                                              controller:
+                                                  _confirmPasswordController,
+                                              validator: (value) {
+                                                if (value!.isEmpty) {
+                                                  return "Enter Confirm Password";
+                                                } else if (value !=
+                                                    _passwordController.text) {
+                                                  return "Password doesn't match";
+                                                }
+                                              },
+                                              style: const TextStyle(
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.w500),
+                                              decoration: InputDecoration(
+                                                hintText: 'Confirm Password',
+                                                hintStyle: const TextStyle(
+                                                  fontSize: 16,
+                                                ),
+                                                contentPadding:
+                                                    const EdgeInsets.all(18),
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                  borderSide: BorderSide.none,
+                                                ),
+                                                filled: true,
+                                                fillColor: Colors.grey
+                                                    .withOpacity(0.2),
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                    ),
-                                    // DropdownButton(items: const [
-                                    //   DropdownMenuItem(child: Text('Male')),
-                                    //   DropdownMenuItem(child: Text('Female')),
-                                    //   DropdownMenuItem(child: Text('Others')),
-                                    // ], onChanged: ((value) {
+                                          Padding(
+                                            padding: const EdgeInsets.all(12.0),
+                                            child: SizedBox(
+                                              height: 40,
+                                              width: 68,
+                                              child: MaterialButton(
+                                                color: const Color.fromARGB(
+                                                    255, 66, 14, 179),
+                                                onPressed: () {
+                                                  if (_formKey.currentState!
+                                                      .validate()) {
+                                                    setState(() {
+                                                      progress++;
+                                                    });
+                                                  }
+                                                },
+                                                shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8)),
+                                                child: const Text(
+                                                  '>>>',
+                                                  style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 20),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          // DropdownButton(items: const [
+                                          //   DropdownMenuItem(child: Text('Male')),
+                                          //   DropdownMenuItem(child: Text('Female')),
+                                          //   DropdownMenuItem(child: Text('Others')),
+                                          // ], onChanged: ((value) {
 
-                                    // })),
-                                  ],
-                                ),
+                                          // })),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                ],
                               ),
-                            )
-                          ],
-                        ),
-        ),
+              ),
       ),
     );
   }
@@ -408,7 +423,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   ),
                                 ),
                               )
-                            : SizedBox(),
+                            : const SizedBox(),
                       ),
                     ),
                   ),
@@ -503,12 +518,39 @@ class _SignUpPageState extends State<SignUpPage> {
                     width: 68,
                     child: MaterialButton(
                       color: const Color.fromARGB(255, 66, 14, 179),
-                      onPressed: () {
-                        if(_formKey3.currentState!.validate()){
-
-                        setState(() {
-                          progress++;
-                        });
+                      onPressed: () async {
+                        if (_formKey3.currentState!.validate()) {
+                          if (_imageFile == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Please Upload Image')));
+                            return;
+                          }
+                          String? url = await DBService()
+                              .uploadFile(File(_imageFile!.path));
+                          if (url == null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Something went wrong')));
+                            return;
+                          }
+                          MyUser user = MyUser(
+                              first_name: _firstController.text,
+                              last_name: _lastController.text,
+                              gender: gender!,
+                              interested: interested!,
+                              password: _passwordController.text,
+                              url: url,
+                              email: _emailController.text);
+                          await AuthService().createUserWithEmailAndPassword(
+                              _emailController.text, _passwordController.text);
+                          localStorage.username = _emailController.text;
+                          await DBService().createUser(user).then((value) =>
+                              Navigator.of(context).pushAndRemoveUntil(
+                                MaterialPageRoute(
+                                    builder: (context) => const HomePage()),
+                                (r) => false,
+                              ));
                         }
                       },
                       shape: RoundedRectangleBorder(
@@ -558,6 +600,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   padding: const EdgeInsets.only(
                       left: 20, right: 20, top: 30, bottom: 15),
                   child: TextFormField(
+                    controller: _firstController,
                     validator: (value) {
                       if (value!.isEmpty) {
                         return "Enter Your First Name";
@@ -584,6 +627,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   padding:
                       const EdgeInsets.only(left: 20, right: 20, bottom: 10),
                   child: TextFormField(
+                    controller: _lastController,
                     validator: (value) {
                       if (value!.isEmpty) {
                         return "Enter Your Last Name";

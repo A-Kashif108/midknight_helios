@@ -17,18 +17,18 @@ class LocalStorage {
 
   String get location => _sharedPrefs?.getString(keyLocation) ?? "";
 
-  List<String> get services => _sharedPrefs?.getStringList(keyServices) ?? [];
-
   set id(String value) {
     _sharedPrefs?.setString(keyId, value);
   }
 
-  set services(List<String> str) {
-    _sharedPrefs?.setStringList(keyServices, str);
-  }
-
   set location(String value) {
     _sharedPrefs?.setString(keyLocation, value);
+  }
+
+  bool get isLanding => _sharedPrefs?.getBool(keyLanding) ?? false;
+
+  set isLanding(bool value) {
+    _sharedPrefs?.setBool(keyLanding, value);
   }
 }
 
@@ -36,5 +36,5 @@ final localStorage = LocalStorage();
 // constants/strings.dart
 const String keyUsername = "name";
 const String keyId = "id";
-const String keyServices = "_services";
 const String keyLocation = "_location";
+const String keyLanding = "_landing";

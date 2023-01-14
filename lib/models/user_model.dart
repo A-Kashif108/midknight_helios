@@ -1,7 +1,7 @@
 class MyUser{
   final String first_name;
   final String last_name;
-  final int id;
+  final String? id;
   final String  gender;
   final String  interested;
   final String password;
@@ -10,7 +10,8 @@ class MyUser{
 
 
 
-  MyUser(this.first_name, this.last_name, this.id, this.gender, this.interested, this.password, this.url, this.email);
+  MyUser({required this.first_name,required this.last_name, this.id,required this.gender, 
+  required this.interested,required this.password,required this.url,required this.email});
 
   MyUser.fromJSON(Map<String, dynamic> json):
       first_name=json['first_name'],
