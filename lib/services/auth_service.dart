@@ -8,6 +8,7 @@ class AuthService {
         email: email,
         password: password,
       );
+      return credential.user!.uid;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         return 'The password provided is too weak.';

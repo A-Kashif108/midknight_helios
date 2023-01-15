@@ -545,12 +545,15 @@ class _SignUpPageState extends State<SignUpPage> {
                               password: _passwordController.text,
                               url: url,
                               email: _emailController.text);
-                          await AuthService().createUserWithEmailAndPassword(
-                              _emailController.text, _passwordController.text);
-                          localStorage.username = _emailController.text;
-                          await DBService().createUser(user).then((value) {
+                          await AuthService()
+                              .createUserWithEmailAndPassword(
+                                  _emailController.text,
+                                  _passwordController.text)
+                              .then((v) async {
+                                await DBService().createUser(user).then((value) {
+                              localStorage.username = _emailController.text;
                             setState(() {
-                              isLoading = true;
+                              isLoading = false;
                             });
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(
@@ -558,6 +561,9 @@ class _SignUpPageState extends State<SignUpPage> {
                               (r) => false,
                             );
                           });
+                              });
+                          localStorage.username = _emailController.text;
+                          
                         }
                       },
                       shape: RoundedRectangleBorder(

@@ -55,27 +55,24 @@ class HomePage extends StatelessWidget {
                             ],
                           ),
                         ),
-                        InkWell(
-                          onTap: () {
-                            Navigator.of(context).push(MaterialPageRoute(
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: SizedBox(
+                            height: 60,
+                            width: 130,
+                            child: MaterialButton(
+                              color: const Color.fromARGB(255, 66, 14, 179),
+                              onPressed: () {
+                                Navigator.of(context).push(MaterialPageRoute(
                               builder: (context) => const KhatPage(),
                             ));
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(12.0),
-                            child: SizedBox(
-                              height: 60,
-                              width: 130,
-                              child: MaterialButton(
-                                color: const Color.fromARGB(255, 66, 14, 179),
-                                onPressed: () {},
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8)),
-                                child: const Text(
-                                  'Write Khat',
-                                  style: TextStyle(
-                                      color: Colors.white, fontSize: 20),
-                                ),
+                              },
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8)),
+                              child: const Text(
+                                'Write Khat',
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 20),
                               ),
                             ),
                           ),
@@ -107,23 +104,38 @@ class HomePage extends StatelessWidget {
                                         querySnapshot.docs.map((e) {
                                       return KhatModel.fromJson(e.data());
                                     }).toList();
-                                    return Row(
-                                      children: [
-                                        ...List.generate(khats.length, (index) {
-                                          return Padding(
-                                            padding: const EdgeInsets.all(8.0),
-                                            child: Container(
-                                              height: 100,
-                                              width: 100,
-                                              decoration: const BoxDecoration(
-                                                image: DecorationImage(
-                                                  image: AssetImage('assets/images/scroll.png')
+                                    return SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Container(
+                                        child: Row(
+                                          children: [
+                                            ...List.generate(khats.length, (index) {
+                                              return InkWell(
+                                                onTap: () {
+                                                  Navigator.of(context)
+                                                      .push(MaterialPageRoute(
+                                                    builder: (context) => KhatPage(
+                                                        khat: khats[index]),
+                                                  ));
+                                                },
+                                                child: Padding(
+                                                  padding:
+                                                      const EdgeInsets.all(8.0),
+                                                  child: Container(
+                                                    height: 100,
+                                                    width: 100,
+                                                    decoration: const BoxDecoration(
+                                                      image: DecorationImage(
+                                                          image: AssetImage(
+                                                              'assets/images/scroll.png')),
+                                                    ),
                                                   ),
-                                              ),
-                                            ),
-                                          );
-                                        }),
-                                      ],
+                                                ),
+                                              );
+                                            }),
+                                          ],
+                                        ),
+                                      ),
                                     );
                                   }
                                 }

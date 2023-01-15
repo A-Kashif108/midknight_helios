@@ -28,28 +28,37 @@ class DBService {
 
   final FirebaseFirestore _db = FirebaseFirestore.instance;
   Future createUser(MyUser user) async {
-    MyUser u = MyUser(
-        first_name: user.first_name,
-        last_name: user.last_name,
-        gender: user.gender,
-        interested: user.interested,
-        password: user.password,
-        id: _auth.currentUser!.uid,
-        url: user.url,
-        email: user.email);
-    await _db.collection('Users').doc(_auth.currentUser!.uid).set(u.toJson());
-    await _db.collection('Users').doc(_auth.currentUser!.uid).set({
+    await _db
+        .collection('Users')
+        .doc(_auth.currentUser!.uid)
+        .set(user.toJson());
+    await _db.collection('Users').doc(_auth.currentUser!.uid).update({
+      'id': _auth.currentUser!.uid,
       'sent_khats': [],
       'received_khats': [],
     });
   }
 
-  Stream<QuerySnapshot<Map<String, dynamic>>> getKhats()  {
+  Stream<QuerySnapshot<Map<String, dynamic>>> getKhats() {
     return _db
         .collection('Khats')
         .where('receiverId', isEqualTo: _auth.currentUser!.uid)
         .snapshots();
+  }
 
+  Future<List<String>> getInterestsIds() async {
+    MyUser user = await getUser();
+    QuerySnapshot snapshot = await _db
+        .collection('Users')
+        .where('Gender', isEqualTo: user.interested)
+        .get();
+    return snapshot.docs.map((e) {
+      return e.id;
+    }).toList();
+  }
+
+  Future sendKhat(KhatModel khat) async {
+    await _db.collection('Khats').add(khat.toJson());
   }
 
   Future<MyUser> getUser() async {
