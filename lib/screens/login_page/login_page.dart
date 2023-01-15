@@ -196,11 +196,12 @@ class _LoginPageState extends State<LoginPage> {
                     color: const Color.fromARGB(255, 66, 14, 179),
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        String? s =
-                            await AuthService().createUserWithEmailAndPassword(
+                          String? s =
+                            await AuthService().signInWithEmailAndPassword(
                           _emailController.text,
                           _passwordController.text,
                         );
+                        print('error : $s');
                         localStorage.username = _emailController.text;
                         if (s != null) {
                           ScaffoldMessenger.of(context)
@@ -212,6 +213,7 @@ class _LoginPageState extends State<LoginPage> {
                             );
                             
                         }
+                        
                       }
                     },
                     shape: RoundedRectangleBorder(
