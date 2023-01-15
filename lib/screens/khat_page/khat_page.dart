@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:midknight_helios/models/khat_model.dart';
+import 'package:midknight_helios/screens/khat_page/3gifs_page.dart';
 import 'package:midknight_helios/services/db_service.dart';
 
 class KhatPage extends StatefulWidget {
@@ -73,22 +74,11 @@ class _KhatPageState extends State<KhatPage> {
                           width: w * 0.9,
                           child: MaterialButton(
                             onPressed: () async {
-                              List<String> ids =
-                                  await DBService().getInterestsIds();
-                              final _random = Random();
-                              final id = ids[_random.nextInt(ids.length)];
-                              final khat = KhatModel(
-                                  createdAt: DateTime.now()
-                                      .microsecondsSinceEpoch
-                                      .toString(),
-                                  content: contentController1.text,
-                                  senderId:
-                                      FirebaseAuth.instance.currentUser!.uid,
-                                  receiverId: id);
-                              await DBService().sendKhat(khat).then((value) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('Khat sent')));
-                              });
+                              Navigator.of(context)
+                                  .push(MaterialPageRoute(
+                                    builder: (context) =>  gifs(content: contentController1.text),
+                                  ))
+                                  .then((value) => Navigator.pop(context));
                             },
                             shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8)),

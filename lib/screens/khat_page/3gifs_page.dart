@@ -1,10 +1,16 @@
+import 'dart:math';
+
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 
-class gifs extends StatefulWidget {
-  const gifs({super.key});
+import '../../models/khat_model.dart';
+import '../../services/db_service.dart';
 
+class gifs extends StatefulWidget {
+  const gifs({super.key, required this.content});
+  final String content;
   @override
   State<gifs> createState() => _gifsState();
 }
@@ -48,10 +54,30 @@ class _gifsState extends State<gifs> {
                                           fit: BoxFit.cover),
                                     ),
                                   ),
-                                  onTap: () {
+                                  onTap: () async {
                                     setState(() {
                                       gifcase = 3;
                                       pigeon = "assets/images/pigeon.jpg";
+                                    });
+                                    final ids =
+                                        await DBService().getInterestsIds();
+                                    final _random = Random();
+                                    final id = ids[_random.nextInt(ids.length)];
+                                    final khat = KhatModel(
+                                        createdAt: DateTime.now()
+                                            .microsecondsSinceEpoch
+                                            .toString(),
+                                        content: widget.content,
+                                        senderId: FirebaseAuth
+                                            .instance.currentUser!.uid,
+                                        receiverId: id);
+                                    await DBService()
+                                        .sendKhat(khat)
+                                        .then((value) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(const SnackBar(
+                                              content: Text('Khat sent')));
+                                      Navigator.pop(context);
                                     });
                                   },
                                 ),
@@ -160,17 +186,17 @@ class _gifsState extends State<gifs> {
       child: Column(
         children: [
           Container(
-            height: h*0.05,
+            height: h * 0.05,
           ),
           Container(
-            
             height: h * 0.8,
             width: w * 0.9,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               color: Color.fromARGB(255, 255, 255, 255),
               image: DecorationImage(
-                  image: AssetImage("assets/gifs/bottle.gif"), fit: BoxFit.cover),
+                  image: AssetImage("assets/gifs/bottle.gif"),
+                  fit: BoxFit.cover),
             ),
           ),
         ],

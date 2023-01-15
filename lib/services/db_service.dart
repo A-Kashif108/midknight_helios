@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -36,6 +37,7 @@ class DBService {
       'id': _auth.currentUser!.uid,
       'sent_khats': [],
       'received_khats': [],
+      'chats':[],
     });
   }
 
@@ -50,8 +52,9 @@ class DBService {
     MyUser user = await getUser();
     QuerySnapshot snapshot = await _db
         .collection('Users')
-        .where('Gender', isEqualTo: user.interested)
+        .where('gender', isEqualTo: user.interested)
         .get();
+
     return snapshot.docs.map((e) {
       return e.id;
     }).toList();
@@ -59,6 +62,16 @@ class DBService {
 
   Future sendKhat(KhatModel khat) async {
     await _db.collection('Khats').add(khat.toJson());
+  }
+
+  Stream<DocumentSnapshot<Map<String, dynamic>>> getChats() {
+    return _db.collection('Users').doc(_auth.currentUser!.uid).snapshots();
+  }
+
+  Future startChat(String chatId) async{
+    await _db.collection('Users').doc(_auth.currentUser!.uid).update({
+      'chats': FieldValue.arrayUnion([chatId]),
+    });
   }
 
   Future<MyUser> getUser() async {
