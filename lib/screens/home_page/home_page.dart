@@ -7,9 +7,15 @@ import 'package:midknight_helios/screens/khat_page/khat_page.dart';
 import 'package:midknight_helios/services/chat_service.dart';
 import 'package:midknight_helios/services/db_service.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int current = 0;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -64,8 +70,8 @@ class HomePage extends StatelessWidget {
                               color: const Color.fromARGB(255, 66, 14, 179),
                               onPressed: () {
                                 Navigator.of(context).push(MaterialPageRoute(
-                              builder: (context) => const KhatPage(),
-                            ));
+                                  builder: (context) => const KhatPage(),
+                                ));
                               },
                               shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8)),
@@ -109,13 +115,15 @@ class HomePage extends StatelessWidget {
                                       child: Container(
                                         child: Row(
                                           children: [
-                                            ...List.generate(khats.length, (index) {
+                                            ...List.generate(khats.length,
+                                                (index) {
                                               return InkWell(
                                                 onTap: () {
                                                   Navigator.of(context)
                                                       .push(MaterialPageRoute(
-                                                    builder: (context) => KhatPage(
-                                                        khat: khats[index]),
+                                                    builder: (context) =>
+                                                        KhatPage(
+                                                            khat: khats[index]),
                                                   ));
                                                 },
                                                 child: Padding(
@@ -124,7 +132,8 @@ class HomePage extends StatelessWidget {
                                                   child: Container(
                                                     height: 100,
                                                     width: 100,
-                                                    decoration: const BoxDecoration(
+                                                    decoration:
+                                                        const BoxDecoration(
                                                       image: DecorationImage(
                                                           image: AssetImage(
                                                               'assets/images/scroll.png')),
